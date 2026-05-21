@@ -31,3 +31,22 @@ export const register = async (
     next(error);
   }
 };
+
+export const googleLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+       res.status(400).json({ error: 'idToken is required' });
+       return;
+    }
+    logger.info('Google login attempt');
+    const result = await AuthService.verifyGoogleToken(idToken);
+    res.status(200).json(result);
+  } catch (error: any) {
+    next(error);
+  }
+};

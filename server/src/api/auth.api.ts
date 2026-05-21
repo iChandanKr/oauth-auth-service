@@ -1,5 +1,4 @@
-
-import { login, register } from '../controllers/AuthController.js';
+import { login, register, googleLogin } from '../controllers/AuthController.js';
 
 export default {
     auth: {
@@ -10,6 +9,10 @@ export default {
         register: {
             method: 'post',
             controller: register,
+        },
+        google: {
+            method: 'post',
+            controller: googleLogin,
         }
     }
 };
