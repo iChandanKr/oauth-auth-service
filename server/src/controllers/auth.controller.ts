@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from "express";
-import AuthService from "../services/AuthService.js";
+import AuthService from "../services/auth.service.js";
 import { getLogger } from "../utils/logger.js";
 
 const logger = getLogger('AuthController');

@@ -1,8 +1,31 @@
-import { DataTypes } from "sequelize";
+import {
+  DataTypes,
+  Model,
+} from "sequelize";
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+} from "sequelize";
 import sequelize from "../config/database.js";
+import type { AuthProvider } from "../types/user.type.js";
 
-const User = sequelize.define(
-  "User",
+class User extends Model<
+  InferAttributes<User, { omit: "createdAt" | "updatedAt" }>,
+  InferCreationAttributes<User, { omit: "createdAt" | "updatedAt" }>
+> {
+  declare id: CreationOptional<string>;
+  declare firstName: string;
+  declare lastName: CreationOptional<string | null>;
+  declare email: string;
+  declare password: CreationOptional<string | null>;
+  declare googleId: CreationOptional<string | null>;
+  declare provider: CreationOptional<AuthProvider>;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
+}
+
+User.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -78,6 +101,8 @@ const User = sequelize.define(
     },
   },
   {
+    sequelize,
+    modelName: "User",
     timestamps: true,
   },
 );
