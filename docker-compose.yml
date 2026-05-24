@@ -1,11 +1,11 @@
 services:
   server:
-    build: ./server
+    build: ./apps/server
     ports:
       - "3000:3000"
     volumes:
       - /app/node_modules
-      - ./server:/app
+      - ./apps/server:/app
     environment:
       - PORT=3000
       - CI=true
@@ -14,14 +14,14 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - .env
+      - ./apps/server/.env
 
   postgres:
     image: postgres:15-alpine
     ports:
       - "5435:5432"
     env_file:
-      - .env
+      - ./apps/server/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -31,14 +31,14 @@ services:
       retries: 5
 
   client:
-    build: ./client
+    build: ./apps/client
     ports:
       - "5173:5173"
     environment:
       - CI=true
     volumes:
       - /app/node_modules
-      - ./client:/app
+      - ./apps/client:/app
     command: sh -c "pnpm install && pnpm dev --host"
 
 volumes:
