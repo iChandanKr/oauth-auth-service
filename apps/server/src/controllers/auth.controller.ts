@@ -14,7 +14,7 @@ export const login = async (
     logger.info({ email }, 'Login attempt');
     const result = await AuthService.login(email);
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     next(error);
   }
 };
@@ -27,7 +27,7 @@ export const register = async (
   try {
     const result = await AuthService.register(req.body);
     res.status(201).json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     next(error);
   }
 };
@@ -46,7 +46,7 @@ export const googleLogin = async (
     logger.info('Google login attempt');
     const result = await AuthService.verifyGoogleToken(idToken);
     res.status(200).json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     next(error);
   }
 };

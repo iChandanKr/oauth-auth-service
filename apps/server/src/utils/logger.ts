@@ -2,30 +2,31 @@ import pino from 'pino';
 import { AsyncLocalStorage } from 'async_hooks';
 export const asyncLocalStorage = new AsyncLocalStorage<{ traceId: string }>();
 
-const baseLogger = pino({
+const loggerOptions: pino.LoggerOptions = {
   level: process.env.LOG_LEVEL || 'info',
-  transport:
-    process.env.NODE_ENV !== 'production'
-      ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'SYS:standard',
-          ignore: 'pid,hostname',
-        },
-      }
-      : undefined as any,
-});
+  mixin() {
+    const store = asyncLocalStorage.getStore();
+    return store ? { traceId: store.traceId } : {};
+  },
+};
+
+if (process.env.NODE_ENV !== 'production') {
+  loggerOptions.transport = {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'SYS:standard',
+      ignore: 'pid,hostname',
+    },
+  };
+}
+
+const baseLogger = pino(loggerOptions);
 
 export const getLogger = (moduleName: string) => {
   return baseLogger.child({
     module: moduleName,
-  }, {
-    mixin() {
-      const store = asyncLocalStorage.getStore();
-      return store ? { traceId: store.traceId } : {};
-    }
-  } as any);
+  });
 };
 
 export default getLogger('App');

@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import { getLogger } from '../utils/logger.js';
 
 const logger = getLogger('AuthMiddleware');
@@ -7,7 +7,7 @@ const logger = getLogger('AuthMiddleware');
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: JwtPayload | string | undefined;
     }
   }
 }
@@ -31,6 +31,13 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
         res.sendStatus(403);
         return;
       }
+
+      if (!user) {
+        logger.warn('JWT verification succeeded without a decoded user');
+        res.sendStatus(403);
+        return;
+      }
+
       req.user = user;
       next();
     });

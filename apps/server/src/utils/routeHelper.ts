@@ -1,41 +1,95 @@
-import { Router, type Request, type Response, type NextFunction } from "express";
+import { Router, type ErrorRequestHandler, type RequestHandler } from "express";
 
-const createRoute = (router: Router, route: any, path: string) => {
-  const middlewares = route.middleware || [];
-  const errorHandlers = route.errorHandler ? route.errorHandler : [];
+type RouteMethod = "get" | "post" | "put" | "patch" | "delete";
 
-  // Accessing router method dynamically
-  (router as any)[route.method](
+interface RouteDefinition {
+  method: RouteMethod;
+  middleware?: RequestHandler[];
+  controller: RequestHandler;
+  errorHandler?: ErrorRequestHandler[];
+}
+
+interface RouteMap {
+  middleware?: RequestHandler[];
+  [segment: string]: RouteNode | RequestHandler[] | undefined;
+}
+
+type RouteNode = RouteDefinition | RouteDefinition[] | RouteMap;
+
+const isRouteDefinition = (route: RouteNode): route is RouteDefinition => {
+  return (
+    typeof route === "object" && !Array.isArray(route) && "method" in route
+  );
+};
+
+const isRouteMap = (route: RouteNode): route is RouteMap => {
+  return (
+    typeof route === "object" && !Array.isArray(route) && !("method" in route)
+  );
+};
+
+const isRouteNode = (route: RouteMap[string]): route is RouteNode => {
+  if (!route) {
+    return false;
+  }
+
+  if (Array.isArray(route)) {
+    return route.every((item) => "method" in item);
+  }
+
+  return true;
+};
+
+const createRoute = (router: Router, route: RouteDefinition, path: string) => {
+  const middlewares = route.middleware ?? [];
+  const errorHandlers = route.errorHandler ?? [];
+
+  // switch (route.method) {
+  //   case "get":
+  //     router.get(path, ...middlewares, route.controller, ...errorHandlers);
+  //     break;
+  //   case "post":
+  //     router.post(path, ...middlewares, route.controller, ...errorHandlers);
+  //     break;
+  //   case "put":
+  //     router.put(path, ...middlewares, route.controller, ...errorHandlers);
+  //     break;
+  //   case "patch":
+  //     router.patch(path, ...middlewares, route.controller, ...errorHandlers);
+  //     break;
+  //   case "delete":
+  //     router.delete(path, ...middlewares, route.controller, ...errorHandlers);
+  //     break;
+  // }
+
+  router[route.method](
     path,
     ...middlewares,
     route.controller,
-    ...errorHandlers
+    ...errorHandlers,
   );
 };
 
 const routeHelper = (
   router: Router,
   pathSegments: string[],
-  route: any,
-  endPoint = "method"
+  route: RouteNode,
 ) => {
   const path = `/${pathSegments.join("/")}`;
 
-  if (route["middleware"] && !route[endPoint]) {
-    router.use(path, route["middleware"]);
+  if (isRouteMap(route) && route.middleware) {
+    router.use(path, route.middleware);
   }
 
   if (Array.isArray(route)) {
     for (const ro of route) {
-      if (ro[endPoint]) {
-        const newpath = path.replace("//", "/");
-        createRoute(router, ro, newpath);
-      }
+      const newpath = path.replace("//", "/");
+      createRoute(router, ro, newpath);
     }
     return;
   }
 
-  if (route[endPoint]) {
+  if (isRouteDefinition(route)) {
     createRoute(router, route, path);
     return;
   }
@@ -43,9 +97,18 @@ const routeHelper = (
   let dynamicRoute = "";
 
   for (const key of Object.keys(route)) {
+    if (key === "middleware") {
+      continue;
+    }
+
     if (key[0] !== ":") {
+      const nextRoute = route[key];
+      if (!isRouteNode(nextRoute)) {
+        continue;
+      }
+
       pathSegments.push(key);
-      routeHelper(router, pathSegments, route[key], endPoint);
+      routeHelper(router, pathSegments, nextRoute);
       pathSegments.pop();
     } else {
       dynamicRoute = key;
@@ -55,12 +118,15 @@ const routeHelper = (
   // register dynamic route
   if (dynamicRoute) {
     pathSegments.push(dynamicRoute);
-    routeHelper(router, pathSegments, route[dynamicRoute], endPoint);
+    const nextRoute = route[dynamicRoute];
+    if (isRouteNode(nextRoute)) {
+      routeHelper(router, pathSegments, nextRoute);
+    }
     pathSegments.pop();
   }
 };
 
-const registerRoutes = (routes: any): Router => {
+const registerRoutes = (routes: RouteNode): Router => {
   const router = Router();
   const pathSegments: string[] = [];
   routeHelper(router, pathSegments, routes);

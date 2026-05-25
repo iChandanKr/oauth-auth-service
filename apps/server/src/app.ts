@@ -1,6 +1,5 @@
 import express from "express";
 import sequelize from "./config/database.js";
-import type { Request, Response } from "express";
 import router from "./route.js";
 import { requestContext } from "./middleware/requestContext.js";
 import { getLogger } from "./utils/logger.js";

@@ -3,6 +3,7 @@ import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import type User from "../models/user.model.js";
 import type { CreateUserInput } from "../types/user.type.js";
+import { AppError } from "../utils/AppError.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -11,7 +12,7 @@ class AuthService {
     // Business logic
     const user = await AuthRepo.findUserByEmail(email);
     if (!user) {
-      throw new Error("User not found");
+      throw AppError.notFound("User not found");
     }
     const token = this.generateJWT(user);
     return { message: "Login successful", user, token };
@@ -20,7 +21,7 @@ class AuthService {
   async register(userData: CreateUserInput) {
     const existingUser = await AuthRepo.findUserByEmail(userData.email);
     if (existingUser) {
-      throw new Error("User already exists");
+      throw AppError.conflict("User already exists");
     }
     const newUser = await AuthRepo.CreateUser(userData);
     const token = this.generateJWT(newUser);
@@ -36,13 +37,13 @@ class AuthService {
     // Ensure ticket is unwrapped correctly, depending on TS version
     const payload = (await ticket).getPayload();
     if (!payload) {
-      throw new Error("Invalid Google Token");
+      throw AppError.unauthorized("Invalid Google Token");
     }
 
     const { sub: googleId, email, name } = payload;
 
     if (!googleId) {
-      throw new Error("Invalid Google Token");
+      throw AppError.unauthorized("Invalid Google Token");
     }
 
     let user: User | null = await AuthRepo.findUserByGoogleId(googleId);
@@ -67,7 +68,7 @@ class AuthService {
     }
 
     if (!user) {
-      throw new Error("Failed to process Google authentication");
+      throw AppError.unauthorized("Failed to process Google authentication");
     }
 
     const token = this.generateJWT(user);

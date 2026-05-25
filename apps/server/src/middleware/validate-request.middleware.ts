@@ -17,7 +17,7 @@ export const validateRequest = (
 
     if (error) {
       const message = error.details.map((detail) => detail.message).join(", ");
-      next(new AppError(message, 400));
+      next(AppError.badRequest(message));
       return;
     }
 
