@@ -17,6 +17,7 @@ export default defineConfig([
       globals: globals.node,
     },
     rules: {
+      'arrow-body-style': ['error', 'as-needed'],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-namespace': 'off',
       '@typescript-eslint/no-unused-vars': [

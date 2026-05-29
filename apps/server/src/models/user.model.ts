@@ -1,7 +1,4 @@
-import {
-  DataTypes,
-  Model,
-} from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import type {
   CreationOptional,
   InferAttributes,
@@ -19,7 +16,7 @@ class User extends Model<
   declare lastName: CreationOptional<string | null>;
   declare email: string;
   declare password: CreationOptional<string | null>;
-  declare googleId: CreationOptional<string | null>;
+  declare providerId: CreationOptional<string | null>;
   declare provider: CreationOptional<AuthProvider>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -80,7 +77,7 @@ User.init(
       },
     },
 
-    googleId: {
+    providerId: {
       type: DataTypes.STRING,
       allowNull: true,
       unique: {
@@ -90,11 +87,11 @@ User.init(
     },
 
     provider: {
-      type: DataTypes.ENUM("local", "google"),
+      type: DataTypes.ENUM("local", "google", "github"),
       defaultValue: "local",
       validate: {
         isIn: {
-          args: [["local", "google"]],
+          args: [["local", "google", "github"]],
           msg: "Provider must be local or google",
         },
       },

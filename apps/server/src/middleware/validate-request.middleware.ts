@@ -7,23 +7,31 @@ type RequestValidationSource = "body" | "params" | "query";
 export const validateRequest = (
   schema: ObjectSchema,
   source: RequestValidationSource = "body",
-) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const requestData = req[source] ?? {};
-    const { error, value } = schema.validate(requestData, {
-      abortEarly: false,
-      stripUnknown: true,
+) => (req: Request, res: Response, next: NextFunction) => {
+  const requestData = req[source] ?? {};
+  const { error, value } = schema.validate(requestData, {
+    abortEarly: false,
+    stripUnknown: true,
+  });
+
+  if (error) {
+    const message = error.details.map((detail) => detail.message).join(", ");
+    next(AppError.badRequest(message));
+    return;
+  }
+
+  if (source === "query") {
+    Object.defineProperty(req, "query", {
+      value,
+      configurable: true,
+      enumerable: true,
+      writable: true,
     });
-
-    if (error) {
-      const message = error.details.map((detail) => detail.message).join(", ");
-      next(AppError.badRequest(message));
-      return;
-    }
-
+  } else {
     req[source] = value;
-    next();
-  };
+  }
+
+  next();
 };
 
 export const validateRequestBody = validateRequest;

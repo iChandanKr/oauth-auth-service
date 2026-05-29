@@ -23,10 +23,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 const baseLogger = pino(loggerOptions);
 
-export const getLogger = (moduleName: string) => {
-  return baseLogger.child({
+export const getLogger = (moduleName: string) =>
+  baseLogger.child({
     module: moduleName,
   });
-};
 
 export default getLogger('App');

@@ -16,17 +16,15 @@ interface RouteMap {
 
 type RouteNode = RouteDefinition | RouteDefinition[] | RouteMap;
 
-const isRouteDefinition = (route: RouteNode): route is RouteDefinition => {
-  return (
+const isRouteDefinition = (route: RouteNode): route is RouteDefinition =>
+  (
     typeof route === "object" && !Array.isArray(route) && "method" in route
   );
-};
 
-const isRouteMap = (route: RouteNode): route is RouteMap => {
-  return (
+const isRouteMap = (route: RouteNode): route is RouteMap =>
+  (
     typeof route === "object" && !Array.isArray(route) && !("method" in route)
   );
-};
 
 const isRouteNode = (route: RouteMap[string]): route is RouteNode => {
   if (!route) {
