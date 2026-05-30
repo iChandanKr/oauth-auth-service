@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import sequelize from "./config/database.js";
 import router from "./route.js";
 import { requestContext } from "./middleware/requestContext.js";
@@ -10,6 +11,7 @@ const logger = getLogger("App");
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestContext);

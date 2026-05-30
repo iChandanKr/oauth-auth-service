@@ -46,21 +46,22 @@ class AuthService {
       throw AppError.unauthorized("Invalid Google Token");
     }
 
-    let user: User | null = await AuthRepo.findUserByGoogleId(googleId);
+    let user: User | null = await AuthRepo.findUserByProviderId("google", googleId);
 
     if (!user && email) {
       // Check if user exists by email but not linked to google
       user = await AuthRepo.findUserByEmail(email);
       if (user) {
         // Link google account to existing user
-        user.googleId = googleId;
+        user.providerId = googleId;
+        user.provider = "google";
         await user.save();
       } else {
         // Create new user
         user = await AuthRepo.CreateUser({
           firstName: name || email,
           email,
-          googleId,
+          providerId: googleId,
           provider: "google",
           password: null,
         });

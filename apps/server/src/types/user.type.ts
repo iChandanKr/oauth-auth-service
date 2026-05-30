@@ -1,10 +1,11 @@
-export type AuthProvider = "local" | "google";
+export type AuthProvider = "local" | "google" | "github";
 
 export interface CreateUserInput {
   firstName: string;
   lastName?: string | null;
   email: string;
   password?: string | null;
-  googleId?: string | null;
+  providerId?: string | null;
   provider?: AuthProvider;
 }
+

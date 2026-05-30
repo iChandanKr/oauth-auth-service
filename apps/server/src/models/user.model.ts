@@ -92,7 +92,7 @@ User.init(
       validate: {
         isIn: {
           args: [["local", "google", "github"]],
-          msg: "Provider must be local or google",
+          msg: "Provider must be local, google, or github",
         },
       },
     },

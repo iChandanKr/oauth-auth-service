@@ -39,7 +39,7 @@ services:
     volumes:
       - /app/node_modules
       - ./apps/client:/app
-    command: sh -c "pnpm install && pnpm dev --host"
+    command: sh -c "pnpm install --no-frozen-lockfile && pnpm dev --host"
 
 volumes:
   postgres_data:
