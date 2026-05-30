@@ -3,27 +3,23 @@ import React, { useEffect, useState } from 'react';
 type Theme = 'default' | 'emerald' | 'cyberpunk' | 'light';
 
 export const ThemeSwitcher: React.FC = () => {
-  const [theme, setTheme] = useState<Theme>('default');
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'default';
+    return (localStorage.getItem('app_theme') as Theme) || 'default';
+  });
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const savedTheme = (localStorage.getItem('app_theme') as Theme) || 'default';
-    setTheme(savedTheme);
-    applyTheme(savedTheme);
-  }, []);
-
-  const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
-    if (newTheme === 'default') {
+    if (theme === 'default') {
       root.removeAttribute('data-theme');
     } else {
-      root.setAttribute('data-theme', newTheme);
+      root.setAttribute('data-theme', theme);
     }
-  };
+  }, [theme]);
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    applyTheme(newTheme);
     localStorage.setItem('app_theme', newTheme);
     setIsOpen(false);
   };

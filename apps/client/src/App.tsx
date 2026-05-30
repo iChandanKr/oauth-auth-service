@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { LoginForm } from './components/auth/LoginForm';
 import { UserDashboard } from './components/dashboard/UserDashboard';
 import { ThemeSwitcher } from './components/ui/ThemeSwitcher';
@@ -15,29 +15,25 @@ interface User {
 }
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
-
-  // Environment variables with fallback defaults
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID_PLACEHOLDER.apps.googleusercontent.com";
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-  useEffect(() => {
-    // Restore session on mount
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
     const savedToken = localStorage.getItem('auth_token');
     const savedUser = localStorage.getItem('auth_user');
 
     if (savedToken && savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
+        return JSON.parse(savedUser);
+      } catch {
         // Clear corrupt state
         localStorage.removeItem('auth_token');
         localStorage.removeItem('auth_user');
       }
     }
-    setIsCheckingSession(false);
-  }, []);
+    return null;
+  });
+  // Environment variables with fallback defaults
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID_PLACEHOLDER.apps.googleusercontent.com";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   const handleLoginSuccess = (loggedInUser: User, sessionToken: string) => {
     setUser(loggedInUser);
@@ -50,19 +46,10 @@ function App() {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     // Clear Google Identity Services session if loaded
-    if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
-      (window as any).google.accounts.id.disableAutoSelect();
+    if (typeof window !== 'undefined' && window.google?.accounts?.id) {
+      window.google.accounts.id.disableAutoSelect();
     }
   };
-
-  if (isCheckingSession) {
-    return (
-      <div className="app-loader">
-        <div className="loader-spinner"></div>
-        <p>Initializing Session...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="app-container">

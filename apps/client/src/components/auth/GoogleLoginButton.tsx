@@ -15,12 +15,12 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
 
   useEffect(() => {
     const initializeGoogleSignIn = () => {
-      const google = (window as any).google;
+      const google = window.google;
       if (google?.accounts?.id) {
         try {
           google.accounts.id.initialize({
             client_id: clientId,
-            callback: (response: any) => {
+            callback: (response: { credential?: string }) => {
               if (response.credential) {
                 onSuccess(response.credential);
               } else {
@@ -38,8 +38,8 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
               width: 320,
             });
           }
-        } catch (err: any) {
-          if (onError) onError(err);
+        } catch (err) {
+          if (onError) onError(err instanceof Error ? err : new Error(String(err)));
         }
       }
     };
@@ -47,7 +47,7 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
-      if ((window as any).google?.accounts?.id) {
+      if (window.google?.accounts?.id) {
         clearInterval(interval);
         initializeGoogleSignIn();
       } else if (attempts >= 50) {

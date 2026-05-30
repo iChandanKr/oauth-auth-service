@@ -4,8 +4,18 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { GoogleLoginButton } from './GoogleLoginButton';
 
+interface User {
+  id: string;
+  firstName: string;
+  lastName?: string | null;
+  email: string;
+  provider: 'local' | 'google' | 'github';
+  providerId?: string | null;
+  createdAt?: string;
+}
+
 interface LoginFormProps {
-  onLoginSuccess: (user: any, token: string) => void;
+  onLoginSuccess: (user: User, token: string) => void;
   apiUrl: string;
   googleClientId: string;
 }
@@ -95,8 +105,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       }
 
       onLoginSuccess(data.user, data.token);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'An unexpected error occurred. Please try again.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.';
+      setErrorMessage(message);
     } finally {
       setIsLoading(false);
     }
@@ -119,8 +130,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       }
 
       onLoginSuccess(data.user, data.token);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Google authentication failed. Please try again.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Google authentication failed. Please try again.';
+      setErrorMessage(message);
     } finally {
       setIsLoading(false);
     }
