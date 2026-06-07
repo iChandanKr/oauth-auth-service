@@ -4,8 +4,14 @@ import { AppError } from "../utils/AppError.js";
 
 type RequestValidationSource = "body" | "params" | "query";
 
-export const validateRequest = (
-  schema: ObjectSchema,
+const validatedRequestKey = {
+  body: "validatedBody",
+  params: "validatedParams",
+  query: "validatedQuery",
+} as const satisfies Record<RequestValidationSource, keyof Request>;
+
+export const validateRequest = <TValidated>(
+  schema: ObjectSchema<TValidated>,
   source: RequestValidationSource = "body",
 ) => (req: Request, res: Response, next: NextFunction) => {
   const requestData = req[source] ?? {};
@@ -20,16 +26,7 @@ export const validateRequest = (
     return;
   }
 
-  if (source === "query") {
-    Object.defineProperty(req, "query", {
-      value,
-      configurable: true,
-      enumerable: true,
-      writable: true,
-    });
-  } else {
-    req[source] = value;
-  }
+  req[validatedRequestKey[source]] = value;
 
   next();
 };
